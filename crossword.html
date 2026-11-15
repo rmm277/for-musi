@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Кроссворд для Муси</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marck+Script&family=Lora:wght@400;600&display=swap">
+<style>
+:root{--bg:#fbeef0;--card:#fff;--ink:#4a2530;--soft:#a5707d;--line:#e8c6cd;--ok:#2f8f5b;--bad:#c9364f;--accent:#c24a68;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241519;--card:#321d23;--ink:#f6dfe4;--soft:#c98f9d;--line:#5a3540;--ok:#5fd093;--bad:#ff7a90;--accent:#ff8fa8;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#241519;--card:#321d23;--ink:#f6dfe4;--soft:#c98f9d;--line:#5a3540;--ok:#5fd093;--bad:#ff7a90;--accent:#ff8fa8;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Lora,Georgia,serif;line-height:1.5;min-height:100vh}
+main{max-width:520px;margin:0 auto;padding:28px 16px 48px}
+h1{font-family:"Marck Script",cursive;font-weight:400;font-size:2.6rem;line-height:1.1;margin:0 0 6px;text-align:center;color:var(--accent)}
+.sub{text-align:center;color:var(--soft);margin:0 0 24px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 16px;margin-bottom:12px}
+.clue{margin:0 0 10px;font-size:1rem}
+.clue b{color:var(--accent);margin-right:6px}
+.line{display:flex;align-items:center;gap:6px}
+.cells{display:flex;gap:3px;flex:1;min-width:0}
+.cells input{flex:1 1 0;min-width:0;max-width:36px;height:42px;padding:0;text-align:center;font:600 1.2rem Lora,Georgia,serif;text-transform:uppercase;color:var(--ink);background:transparent;border:0;border-bottom:2px solid var(--soft);border-radius:6px 6px 0 0;outline:none;caret-color:var(--accent)}
+.cells input:focus{background:var(--line);border-bottom-color:var(--accent)}
+.ok input{border-bottom-color:var(--ok);color:var(--ok)}
+.bad input{border-bottom-color:var(--bad);color:var(--bad)}
+.mark{font-size:1.6rem;width:32px;text-align:center;font-weight:700}
+.ok .mark{color:var(--ok)}.bad .mark{color:var(--bad)}
+.bad .cells{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.bad .cells{animation:none}}
+.score{text-align:center;color:var(--soft);margin:16px 0 0}
+.win{display:none;margin-top:16px;padding:22px 16px;text-align:center;background:var(--card);border:2px solid var(--accent);border-radius:16px}
+.win.show{display:block}
+.win h2{font-family:"Marck Script",cursive;font-weight:400;font-size:2rem;margin:0 0 6px;color:var(--accent)}
+.win p{margin:0}
+</style>
+</head>
+<body>
+<main>
+<h1>Кроссворд для Муси</h1>
+<p class="sub">Впиши ответ в клетки: ✓ значит верно, ✗ значит попробуй ещё раз.</p>
+<div id="list"></div>
+<p class="score" id="score"></p>
+<div class="win" id="win"><h2>Умница, Муся! 💛</h2><p>Ты ответила на всё правильно. Спасибо, что ты рядом.</p></div>
+</main>
+<script>
+var Q=[
+["Как я люблю вас называть?","МУСЯ"],
+["В каком месяце мой день рождения?","МАРТ"],
+["Кто я по знаку зодиака?","РЫБЫ"],
+["Какое блюдо я люблю больше всего?","МАНТЫ"],
+["Какая девушка мне нравится? (имя)","МУСЛИМА"],
+["Сколько у меня было бывших?","НОЛЬ"],
+["Есть ли у меня любовницы?","НЕТ"],
+["Когда мы начали общение? (число и месяц, слитно)","12НОЯБРЯ"],
+["Почему вы такая идеальная? Потому что вы …","БРИЛЛИАНТ"],
+["Я вам нравлюсь?","ДА"]
+];
+var list=document.getElementById("list"),done=[];
+function norm(s){return s.toUpperCase().replace(/Ё/g,"Е")}
+Q.forEach(function(q,i){
+  var d=document.createElement("div");d.className="q";
+  var h='<p class="clue"><b>'+(i+1)+'.</b>'+q[0]+'</p><div class="line"><div class="cells">';
+  for(var k=0;k<q[1].length;k++)h+='<input maxlength="2" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Вопрос '+(i+1)+', буква '+(k+1)+'">';
+  d.innerHTML=h+'</div><span class="mark"></span></div>';
+  list.appendChild(d);
+  var ins=d.querySelectorAll("input"),mark=d.querySelector(".mark");
+  function check(){
+    var v=Array.prototype.map.call(ins,function(x){return x.value}).join("");
+    d.classList.remove("ok","bad");mark.textContent="";done[i]=false;
+    if(v.length===q[1].length){
+      if(norm(v)===q[1]){d.classList.add("ok");mark.textContent="✓";done[i]=true}
+      else{d.classList.add("bad");mark.textContent="✗"}
+    }
+    var n=done.filter(Boolean).length;
+    document.getElementById("score").textContent="Верно: "+n+" из "+Q.length;
+    document.getElementById("win").classList.toggle("show",n===Q.length);
+  }
+  ins.forEach(function(el,k){
+    el.addEventListener("input",function(){
+      var c=norm(el.value).slice(-1);
+      el.value=/[А-Я0-9]/.test(c)?c:"";
+      if(el.value&&ins[k+1])ins[k+1].focus();
+      check();
+    });
+    el.addEventListener("keydown",function(e){
+      if(e.key==="Backspace"&&!el.value&&ins[k-1]){ins[k-1].focus();ins[k-1].value="";check();e.preventDefault()}
+      if(e.key==="ArrowLeft"&&ins[k-1])ins[k-1].focus();
+      if(e.key==="ArrowRight"&&ins[k+1])ins[k+1].focus();
+    });
+    el.addEventListener("focus",function(){el.select()});
+  });
+});
+</script>
+</body>
+</html>
